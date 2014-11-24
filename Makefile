@@ -1,6 +1,6 @@
 .SUFFIXES: .c .o
 CC = gcc
-EXEC = minimax
+EXEC = minimax.a
 CCFLAGS = -std=c99 -pedantic -g -Wall
 OBJS = func.o minimax.o
 
