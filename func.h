@@ -12,6 +12,7 @@
 #define PLAYER_NONE 0
 #define PLAYER_ONE 1
 #define PLAYER_TWO 4
+#define DRAW 128
 #define MAXIMIZING_PLAYER PLAYER_ONE
 
 typedef struct _Node {
@@ -24,13 +25,13 @@ typedef struct _NodeList {
     struct _NodeList* next;
 } NodeList;
 
-int minimax(Node* node, int depth, bool maximizingPlayer);
+int minimax(Node* node, int depth, bool maximizingPlayer, Node* out);
 
 void node_init(Node* node);
 
 bool node_allocate(Node** node);
 
-void node_printBoard(Node* node, char* tokens);
+void node_printBoard(Node* node);
 
 NodeList* node_moves(Node* node, int player);
 

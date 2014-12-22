@@ -4,11 +4,15 @@
 #include <string.h>
 #include <stdlib.h>
 
-int minimax(Node* node, int depth, bool maximizingPlayer) {
+int minimax(Node* node, int depth, bool maximizingPlayer, Node* out) {
     int victor = node_isTerminal(node);
 
     if (depth == 0 || victor) {
-        return node_heuristic(node, victor);
+        int heuristic = node_heuristic(node, victor);
+        printf("--------------------------");
+        printf("Heuristic for board = %i\n", heuristic);
+        node_printBoard(node);
+        return heuristic;
     }
     
     if (maximizingPlayer) {
@@ -16,10 +20,20 @@ int minimax(Node* node, int depth, bool maximizingPlayer) {
         
         NodeList* head = node_moves(node, PLAYER_ONE);
         NodeList* next = head;
+        Node* bestMove = &next->node;
         while (next != null) { // For each possible move
-            int val = minimax(&next->node, depth - 1, false); // recurse for other player's move
-            best = best > val ? best : val; // Take the maximum
+            int val = minimax(&next->node, depth - 1, false, null); // recurse for other player's move
+
+            if (val > best) { // Take the maximum
+                best = val;
+                bestMove = &next->node;
+            }
+
             next = next->next; // Progress to next possible move
+        }
+
+        if (out != null) { // Copy best move into out
+            memcpy(out, bestMove, sizeof(Node));
         }
 
         node_free(head); // Free move list from memory
@@ -30,10 +44,20 @@ int minimax(Node* node, int depth, bool maximizingPlayer) {
         
         NodeList* head = node_moves(node, PLAYER_TWO);
         NodeList* next = head;
+        Node* bestMove = &next->node;
         while (next != null) { // For each possible move
-            int val = minimax(&next->node, depth - 1, true); // recurse for other player's move
-            best = best < val ? best : val; // Take the minimum
+            int val = minimax(&next->node, depth - 1, true, null); // recurse for other player's move
+
+            if (val < best) { // Take the minimum
+                best = val;
+                bestMove = &next->node;
+            }
+
             next = next->next; // Progress to next possible move
+        }
+
+        if (out != null) { // Copy best move into out
+            memcpy(out, bestMove, sizeof(Node));
         }
 
         node_free(head); // Free move list from memory
@@ -83,6 +107,20 @@ int node_isTerminal(Node* node) {
     ret = node->board[2][0] & node->board[1][1] & node->board[0][2];
     if (ret != 0) { return ret; }
 
+    // Check for draw
+    int filled = 0;
+    for (int x = 0; x < BOARD_SIZE; x++) {
+        for (int y = 0; y < BOARD_SIZE; y++) {
+            if (node->board[x][y] != PLAYER_NONE) {
+                filled++;
+            }
+        }
+    }
+    
+    if (filled == BOARD_SIZE * BOARD_SIZE) {
+        return DRAW;
+    }
+
     return 0;
 }
 
@@ -118,26 +156,26 @@ void node_rowHeuristic(int a, int b, int c, int* max, int* min) {
             //*min = 1;
             break;
         case 2:
-            *max *= 100;
+            *max += 3;
             //*min = 1;
             break;
         case 1:
-            *max *= 10;
+            *max += 1;
             //*min = 1;
             break;
         case 8:
             //*max = 1;
-            *min *= 100;
+            *min += 3;
             break;
         case 4:
             //*max = 1;
-            *min *= 10;
+            *min += 1;
             break;
     }
 }
 
 int node_heuristic(Node* node, int victor) {
-    if (victor == 0) {
+    if (victor == 0 || victor == DRAW) {
         int max = 1;
         int min = 1;
 
@@ -232,12 +270,22 @@ NodeList* node_moves(Node* node, int player) {
 // O | X | X
 //---|---|---
 //   | O | O
-void node_printBoard(Node* node, char* tokens) {
-    system("clear");
+void node_printBoard(Node* node) {
+    //system("clear");
 
     for (int y = 0; y < BOARD_SIZE; y++) {
         for (int x = 0; x < BOARD_SIZE; x++) {
-            printf(" %c ", tokens[node->board[x][y]]);
+            switch (node->board[x][y]) {
+                case PLAYER_NONE:
+                    printf(" %c ", ' ');
+                    break;
+                case PLAYER_ONE:
+                    printf(" %c ", 'X');
+                    break;
+                case PLAYER_TWO:
+                    printf(" %c ", 'O');
+                    break;
+            }
             
             if (x < BOARD_SIZE - 1) {
                 printf("|");
