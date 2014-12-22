@@ -29,7 +29,7 @@ int main(int argc, char* argv[]) {
         }
 
         node.board[moveX][moveY] = PLAYER_ONE;
-        minimax(&node, 4, false, &node);
+        minimax(&node, 8, false, &node);
         
         victor = node_isTerminal(&node);
         if (victor == PLAYER_TWO) {
